@@ -18,7 +18,7 @@ logstash:
             - ./conf:/conf
     links:
             - elasticsearch:elasticsearch
-    command: logstash -f /conf/gelf.conf --verbose
+    command: logstash -f /conf/beats.conf --verbose
 
 kibana:
     image: kibana:latest
@@ -31,10 +31,8 @@ filebeat:
     image: prima/filebeat
     volumes:
         - ./conf/filebeat.yml:/filebeat.yml
-        - /var/log/apache2/other_vhosts_access.log:/logs/tests.log
+        - /var/log/apache2:/logs/apache2
+        - /home/fabien/home/workspace/ffopen/log:/logs/ffopen
     links: 
         - logstash:logstash
-    log_driver: "gelf"
-    log_opt:
-       gelf-address: "udp://127.0.0.1:12201"
     
