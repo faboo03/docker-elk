@@ -1,0 +1,40 @@
+elasticsearch:
+    image: elasticsearch:latest
+    volumes:
+            - /srv/elasticsearch/data:/usr/share/elasticsearch/data
+    ports:
+            - "9200:9200"
+
+logstash:
+    image: logstash:latest
+    environment:
+            TZ: Europe/Paris
+    expose:
+            - "12201"
+    ports:
+            - "12201:12201"
+            - "12201:12201/udp"
+    volumes:
+            - ./conf:/conf
+    links:
+            - elasticsearch:elasticsearch
+    command: logstash -f /conf/gelf.conf --verbose
+
+kibana:
+    image: kibana:latest
+    links:
+            - elasticsearch:elasticsearch
+    ports:
+            - "5601:5601"
+
+filebeat: 
+    image: prima/filebeat
+    volumes:
+        - ./conf/filebeat.yml:/filebeat.yml
+        - /var/log/apache2/other_vhosts_access.log:/logs/tests.log
+    links: 
+        - logstash:logstash
+    log_driver: "gelf"
+    log_opt:
+       gelf-address: "udp://127.0.0.1:12201"
+    
